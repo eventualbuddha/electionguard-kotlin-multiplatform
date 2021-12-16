@@ -159,7 +159,7 @@ actual class GroupContext(
         return if (tmp >= q) null else ElementModQ(tmp, this)
     }
 
-    actual fun gPowP(e: Int) = when(e) {
+    actual fun gPowPSmall(e: Int) = when(e) {
         0 -> oneModP
         1 -> gModP
         2 -> gSquaredModP

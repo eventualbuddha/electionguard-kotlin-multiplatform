@@ -47,7 +47,7 @@ kotlin {
             }
     }
 
-    js(BOTH) {
+    js(IR) {
         moduleName = "electionguard"
 
         useCommonJs()
@@ -112,7 +112,7 @@ kotlin {
                     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC")
 
                     // Portable logging
-                    implementation("io.github.aakira:napier:2.2.0")
+//                    implementation("io.github.aakira:napier:2.2.0")
 
                     // SHA256, secure random number generation, Base64 encoding
                     implementation("com.soywiz.korlibs.krypto:krypto:2.4.8")
@@ -143,7 +143,10 @@ kotlin {
                     implementation(kotlin("stdlib-js", "1.6.10"))
 
                     // Portable, Kotlin port of Java's BigInteger; slow but works
-                    implementation("io.github.gciatto:kt-math:0.4.0")
+//                    implementation("io.github.gciatto:kt-math:0.4.0")
+
+                    // Fast, WASM target from GMP for all our bignum needs
+                    implementation(npm("gmp-wasm", "0.9.2"))
 
                     // SHA256, secure random number generation, Base64 encoding
 //                    implementation("com.soywiz.korlibs.krypto:krypto-js:2.4.8")

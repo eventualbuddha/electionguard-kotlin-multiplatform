@@ -404,7 +404,7 @@ actual class GroupContext(
         return bignum256
     }
 
-    actual fun gPowP(e: Int) = gPowP(e.toElementModQ(this))
+    actual fun gPowPSmall(e: Int) = gPowP(e.toElementModQ(this))
 
     actual fun gPowP(e: ElementModQ) = gModP.powP(e)  // fixme with PowRadix later on
 }

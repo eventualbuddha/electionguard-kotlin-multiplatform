@@ -111,7 +111,7 @@ expect class GroupContext {
      * Computes G^e mod p, where G is our generator. Optimized for small values of e, which occur
      * commonly when encoding vote counters (G raised to 0 or 1).
      */
-    fun gPowP(e: Int): ElementModP
+    fun gPowPSmall(e: Int): ElementModP
 
     /** Computes G^e mod p, where G is our generator */
     fun gPowP(e: ElementModQ): ElementModP
