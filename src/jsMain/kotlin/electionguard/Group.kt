@@ -5,19 +5,12 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import electionguard.Integer as BigInteger
 
-// This implementation uses kt-math (https://github.com/gciatto/kt-math), which is something
+// If you read deep into the Git history, you'll see an older implementation here using
+// kt-math (https://github.com/gciatto/kt-math), which is something
 // of a port of Java's BigInteger. It's not terribly fast, but it at least seems to give
-// correct answers. And, unsurprisingly, this code is *almost* but not exactly the same
-// as the JVM code. This really needs to be replaced with something that will be performant,
-// probably using WASM. The "obvious" choices are:
-//
-// - GMP-WASM (https://github.com/Daninet/gmp-wasm)
-//   (Kotlin's "Dukat" TypeScript interface extraction completely fails on this, which is sad.)
-//
-// - HACL-WASM (https://github.com/project-everest/hacl-star/tree/master/bindings/js#readme)
-//   (Hash many other HACL features, but doesn't expose any of the BigInt-related types.)
-//
-// But, for now, JS will at least "work".
+// correct answers. The code now uses GMP-WASM (https://github.com/Daninet/gmp-wasm),
+// which has the potential to be a lot faster, but requires a lot of extra work to deal
+// with JavaScript async issues.
 
 internal val productionGroupContext =
     GroupContext(
@@ -45,7 +38,7 @@ actual fun productionGroup(acceleration: PowRadixOption): GroupContext {
 
 actual fun testGroup() = testGroupContext
 
-actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArray, rBytes: ByteArray, strong: Boolean, val name: String) {
+actual class GroupContext(val gmpLib: GMPLib, pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArray, rBytes: ByteArray, strong: Boolean, val name: String) {
     val p: BigInteger
     val q: BigInteger
     val g: BigInteger
@@ -60,7 +53,13 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
     val oneModQ: ElementModQ
     val twoModQ: ElementModQ
     val productionStrength: Boolean = strong
-    val gmpLib: GMPLib
+
+    companion object {
+        suspend fun make(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArray, rBytes: ByteArray, strong: Boolean, name: String): GroupContext {
+            val gmpLib = getGmpLib()
+            return GroupContext(gmpLib, pBytes, qBytes, gBytes, rBytes, strong, name)
+        }
+    }
 
     init {
         gmpLib = getGmpLib()

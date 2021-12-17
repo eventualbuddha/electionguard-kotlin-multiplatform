@@ -4,6 +4,8 @@ import kotlinx.coroutines.await
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
 import org.khronos.webgl.set
+import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.suspendCoroutine
 import kotlin.js.Promise
 
 @JsModule("gmp-wasm")
@@ -195,7 +197,7 @@ external suspend fun init(): Promise<GMPLib>
  * Loads Gmp, if it's not already loaded, and returns a handle to `GMPLib`, which is
  * used as a context-style argument to a variety of GMP functions.
  */
-fun getGmpLib() = getPromise { init() }
+suspend fun getGmpLib(): GMPLib = init().await()
 
 fun ByteArray.toUint8Array(): Uint8Array {
     val result = Uint8Array(this.size)
