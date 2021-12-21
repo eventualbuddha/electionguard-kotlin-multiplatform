@@ -158,7 +158,7 @@ kotlin {
                     implementation(kotlin("stdlib-js", "1.6.10"))
 
                     // Portable, Kotlin port of Java's BigInteger; slow but works
-                    implementation("io.github.gciatto:kt-math:0.4.0")
+                    implementation(npm("sjcl", "1.0.8"))
                 }
             }
         val jsTest by getting { dependencies { implementation(kotlin("test-js", "1.6.10")) } }
