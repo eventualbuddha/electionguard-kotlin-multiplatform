@@ -23,22 +23,25 @@ import sjcl.toByteArray
 //
 // But, for now, JS will at least "work".
 
-/** Wrapper around sjcl.bn instances */
-value class BigInteger(val element: BigNumber) {
-    operator fun plus(b: BigInteger) = BigInteger(element.add(b.element))
-    operator fun minus(b: BigInteger) = BigInteger(element.sub(b.element))
-    operator fun times(b: BigInteger) = BigInteger(element.mul(b.element))
-    fun mulmod(b: BigInteger, n: BigInteger) = BigInteger(element.mulmod(b.element, n.element))
-    operator fun compareTo(b: BigInteger) = when {
-        element.equals(b.element) -> 0
-        element.greaterEquals(b.element) -> 1
-        else -> -1
-    }
-    fun mod(n: BigInteger) = BigInteger(element.mod(n.element))
-    fun powermod(e: BigInteger, n: BigInteger) = BigInteger(element.powermod(e.element, n.element))
-    fun inverseMod(n: BigInteger) = BigInteger(element.inverseMod(n.element))
-    fun toByteArray(): ByteArray = element.toBits().toByteArray()
+internal operator fun BigNumber.plus(b: BigNumber) = this.add(b)
+
+internal operator fun BigNumber.minus(b: BigNumber) = this.sub(b)
+
+internal operator fun BigNumber.times(b: BigNumber) = this.mul(b)
+
+internal fun timesMod(a: BigNumber, b: BigNumber, n: BigNumber) = a.mulmod(b, n)
+
+internal operator fun BigNumber.compareTo(b: BigNumber) = when {
+    this.equals(b) -> 0
+    this.greaterEquals(b) -> 1
+    else -> -1
 }
+
+internal fun BigNumber.modPow(e: BigNumber, n: BigNumber) = this.powermod(e, n)
+
+internal fun BigNumber.modInverse(n: BigNumber) = this.inverseMod(n)
+
+internal fun BigNumber.toByteArray(): ByteArray = this.toBits().toByteArray()
 
 private val testGroupContext =
     GroupContext(
@@ -101,30 +104,27 @@ actual fun productionGroup(acceleration: PowRadixOption) : GroupContext =
 actual fun testGroup() = testGroupContext
 
 /** Convert an array of bytes, in big-endian format, to a BigInteger */
-internal fun UInt.toBigInteger(): BigInteger {
+internal fun UInt.toBigNumber(): BigNumber {
     val bytes = ByteArray(4)
     // big-endian
     bytes[0] = ((this and 0xff_00_00_00U) shr 24).toByte()
     bytes[1] = ((this and 0xff_00_00U) shr 16).toByte()
     bytes[2] = ((this and 0xff_00U) shr 8).toByte()
     bytes[3] = ((this and 0xffU)).toByte()
-    return bytes.toBigInteger()
+    return bytes.toBigNumber()
 }
 
-internal fun ByteArray.toBigInteger() = BigInteger(toBN())
+internal fun ByteArray.toBigNumber(): BigNumber = bn.fromBits(this.toBitArray())
 
-internal fun ByteArray.toBN(): BigNumber = bn.fromBits(this.toBitArray())
-
-private val SJCL_ZERO = 0U.toBigInteger()
-private val SJCL_ONE = 1U.toBigInteger()
+private val SJCL_ZERO = 0U.toBigNumber()
+private val SJCL_ONE = 1U.toBigNumber()
+private val SJCL_TWO = 2U.toBigNumber()
 
 actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArray, rBytes: ByteArray, strong: Boolean, val name: String, val powRadixOption: PowRadixOption) {
-    val p: BigInteger
-    val pMinus1: BigInteger
-    val q: BigInteger
-    val qMinus1: BigInteger
-    val g: BigInteger
-    val r: BigInteger
+    val p: BigNumber
+    val q: BigNumber
+    val g: BigNumber
+    val r: BigNumber
     val zeroModP: ElementModP
     val oneModP: ElementModP
     val twoModP: ElementModP
@@ -133,6 +133,7 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
     val gSquaredModP: ElementModP
     val qModP: ElementModP
     val qMinus1ModQ: ElementModQ
+    val pMinus1ModP: ElementModP
     val zeroModQ: ElementModQ
     val oneModQ: ElementModQ
     val twoModQ: ElementModQ
@@ -140,23 +141,25 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
     val dlogger: DLog
 
     init {
-        p = pBytes.toBigInteger()
-        pMinus1 = p - SJCL_ONE
-        q = qBytes.toBigInteger()
-        qMinus1 = q - SJCL_ONE
-        g = gBytes.toBigInteger()
-        r = rBytes.toBigInteger()
-        zeroModP = ElementModP(0U.toBigInteger(), this)
-        oneModP = ElementModP(1U.toBigInteger(), this)
-        twoModP = ElementModP(2U.toBigInteger(), this)
+        p = pBytes.toBigNumber()
+        q = qBytes.toBigNumber()
+        g = gBytes.toBigNumber()
+        r = rBytes.toBigNumber()
+        zeroModP = ElementModP(SJCL_ZERO, this)
+        oneModP = ElementModP(SJCL_ONE, this)
+        twoModP = ElementModP(SJCL_TWO, this)
+        println("ZeroP = $zeroModP")
+        println("OneP = $oneModP")
+        println("TwoP = $twoModP")
         gModP = ElementModP(g, this).acceleratePow()
         gSquaredModP = gModP * gModP
         qModP = ElementModP(q, this)
-        zeroModQ = ElementModQ(0U.toBigInteger(), this)
-        oneModQ = ElementModQ(1U.toBigInteger(), this)
-        twoModQ = ElementModQ(2U.toBigInteger(), this)
+        zeroModQ = ElementModQ(SJCL_ZERO, this)
+        oneModQ = ElementModQ(SJCL_ONE, this)
+        twoModQ = ElementModQ(SJCL_TWO, this)
         dlogger = DLog(this)
         qMinus1ModQ = zeroModQ - oneModQ
+        pMinus1ModP = ElementModP(p - SJCL_ONE, this)
     }
 
     actual fun toJson(): JsonElement = JsonObject(mapOf()) // fixme
@@ -204,8 +207,8 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
             throw IllegalArgumentException("minimum $minimum may not be negative")
         }
 
-        val tmp = b.toBigInteger().mod(p)
-        val mv = minimum.toUInt().toBigInteger()
+        val tmp = b.toBigNumber().mod(p)
+        val mv = minimum.toUInt().toBigNumber()
         val tmp2 = if (tmp < mv) tmp + mv else tmp
         val result = ElementModP(tmp2, this)
 
@@ -217,9 +220,9 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
             throw IllegalArgumentException("minimum $minimum may not be negative")
         }
 
-        val tmp = b.toBigInteger().mod(q)
+        val tmp = b.toBigNumber().mod(q)
 
-        val mv = minimum.toUInt().toBigInteger()
+        val mv = minimum.toUInt().toBigNumber()
         val tmp2 = if (tmp < mv) tmp + mv else tmp
         val result = ElementModQ(tmp2, this)
 
@@ -227,12 +230,12 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
     }
 
     actual fun binaryToElementModP(b: ByteArray): ElementModP? {
-        val tmp = b.toBigInteger()
+        val tmp = b.toBigNumber()
         return if (tmp >= p || tmp < SJCL_ZERO) null else ElementModP(tmp, this)
     }
 
     actual fun binaryToElementModQ(b: ByteArray): ElementModQ? {
-        val tmp = b.toBigInteger()
+        val tmp = b.toBigNumber()
         return if (tmp >= q || tmp < SJCL_ZERO) null else ElementModQ(tmp, this)
     }
 
@@ -241,7 +244,7 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
     actual fun dLog(p: ElementModP): Int? = dlogger.dLog(p)
 }
 
-internal fun Element.getCompat(other: GroupContext): BigInteger {
+internal fun Element.getCompat(other: GroupContext): BigNumber {
     context.assertCompatible(other)
     return when (this) {
         is ElementModP -> this.element
@@ -250,9 +253,9 @@ internal fun Element.getCompat(other: GroupContext): BigInteger {
     }
 }
 
-actual class ElementModQ(val element: BigInteger, val groupContext: GroupContext): Element, Comparable<ElementModQ> {
-    internal fun BigInteger.modWrap(): ElementModQ = this.mod(groupContext.q).wrap()
-    internal fun BigInteger.wrap(): ElementModQ = ElementModQ(this, groupContext)
+actual class ElementModQ(val element: BigNumber, val groupContext: GroupContext): Element, Comparable<ElementModQ> {
+    internal fun BigNumber.modWrap(): ElementModQ = this.mod(groupContext.q).wrap()
+    internal fun BigNumber.wrap(): ElementModQ = ElementModQ(this, groupContext)
 
     override val context: GroupContext
         get() = groupContext
@@ -274,14 +277,14 @@ actual class ElementModQ(val element: BigInteger, val groupContext: GroupContext
         (this.element - other.getCompat(groupContext)).modWrap()
 
     actual operator fun times(other: ElementModQ): ElementModQ =
-        this.element.mulmod(other.getCompat(groupContext), groupContext.q).wrap()
+        timesMod(this.element, other.getCompat(groupContext), groupContext.q).wrap()
 
-    actual fun multInv(): ElementModQ = element.inverseMod(groupContext.q).wrap()
+    actual fun multInv(): ElementModQ = element.modInverse(groupContext.q).wrap()
 
     actual operator fun unaryMinus(): ElementModQ = (groupContext.q - element).wrap()
 
     actual infix operator fun div(denominator: ElementModQ) =
-        (element * denominator.getCompat(groupContext).inverseMod(groupContext.q)).modWrap()
+        (element * denominator.getCompat(groupContext).modInverse(groupContext.q)).modWrap()
 
     override fun equals(other: Any?) = when (other) {
         is ElementModQ -> other.getCompat(this.groupContext).equals(this.element)
@@ -293,9 +296,9 @@ actual class ElementModQ(val element: BigInteger, val groupContext: GroupContext
     override fun toString() = element.toByteArray().toBase64()
 }
 
-actual open class ElementModP(val element: BigInteger, val groupContext: GroupContext): Element, Comparable<ElementModP> {
-    internal fun BigInteger.modWrap(): ElementModP = this.mod(groupContext.p).wrap()
-    internal fun BigInteger.wrap(): ElementModP = ElementModP(this, groupContext)
+actual open class ElementModP(val element: BigNumber, val groupContext: GroupContext): Element, Comparable<ElementModP> {
+    internal fun BigNumber.modWrap(): ElementModP = this.mod(groupContext.p).wrap()
+    internal fun BigNumber.wrap(): ElementModP = ElementModP(this, groupContext)
 
     override val context: GroupContext
         get() = groupContext
@@ -311,20 +314,20 @@ actual open class ElementModP(val element: BigInteger, val groupContext: GroupCo
     actual override operator fun compareTo(other: ElementModP) = element.compareTo(other.getCompat(context))
 
     actual fun isValidResidue(): Boolean {
-        val residue = element.powermod(groupContext.q, groupContext.p) == groupContext.ONE_MOD_P.element
+        val residue = element.modPow(groupContext.q, groupContext.p) == groupContext.ONE_MOD_P.element
         return inBounds() && residue
     }
 
     actual infix open fun powP(e: ElementModQ) =
-        this.element.powermod(e.getCompat(groupContext), groupContext.p).wrap()
+        this.element.modPow(e.getCompat(groupContext), groupContext.p).wrap()
 
     actual operator fun times(other: ElementModP) =
-        this.element.mulmod(other.getCompat(groupContext), groupContext.p).wrap()
+        timesMod(this.element, other.getCompat(groupContext), groupContext.p).wrap()
 
-    actual fun multInv() = element.inverseMod(groupContext.p).wrap()
+    actual fun multInv() = element.modInverse(groupContext.p).wrap()
 
     actual infix operator fun div(denominator: ElementModP) =
-        (element * denominator.getCompat(groupContext).inverseMod(groupContext.p)).modWrap()
+        (element * denominator.getCompat(groupContext).modInverse(groupContext.p)).modWrap()
 
     override fun equals(other: Any?) = when (other) {
         is ElementModP -> other.getCompat(this.groupContext).equals(this.element)
@@ -391,12 +394,12 @@ actual fun UInt.toElementModQ(ctx: GroupContext) : ElementModQ = when (this) {
     0U -> ctx.ZERO_MOD_Q
     1U -> ctx.ONE_MOD_Q
     2U -> ctx.TWO_MOD_Q
-    else -> ElementModQ(this.toBigInteger(), ctx)
+    else -> ElementModQ(this.toBigNumber(), ctx)
 }
 
 actual fun UInt.toElementModP(ctx: GroupContext) : ElementModP = when (this) {
     0U -> ctx.ZERO_MOD_P
     1U -> ctx.ONE_MOD_P
     2U -> ctx.TWO_MOD_P
-    else -> ElementModP(this.toBigInteger(), ctx)
+    else -> ElementModP(this.toBigNumber(), ctx)
 }

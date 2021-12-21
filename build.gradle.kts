@@ -158,7 +158,7 @@ kotlin {
                     implementation(kotlin("stdlib-js", "1.6.10"))
 
                     // Stanford JavaScript Crypto Library, for bignums
-                    implementation(npm("sjcl", "1.0.8"))
+                    implementation(npm("sjcl-complete", "1.0"))
 
                     // Dukat had some errors, so we had to change things manually. Resulting
                     // files are in src/jsMain/kotlin/sjcl. This wasn't as awesome as it
