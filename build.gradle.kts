@@ -157,8 +157,13 @@ kotlin {
                 dependencies {
                     implementation(kotlin("stdlib-js", "1.6.10"))
 
-                    // Portable, Kotlin port of Java's BigInteger; slow but works
+                    // Stanford JavaScript Crypto Library, for bignums
                     implementation(npm("sjcl", "1.0.8"))
+
+                    // Dukat had some errors, so we had to change things manually. Resulting
+                    // files are in src/jsMain/kotlin/sjcl. This wasn't as awesome as it
+                    // should have been!
+//                    implementation(npm("@types/sjcl", "1.0.30", generateExternals = true))
                 }
             }
         val jsTest by getting { dependencies { implementation(kotlin("test-js", "1.6.10")) } }

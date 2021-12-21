@@ -4,9 +4,11 @@ import electionguard.Base64.fromSafeBase64
 import electionguard.Base64.toBase64
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import sjcl.BigNumber
+import sjcl.TypeHelpers.invoke
 import sjcl.bn
-import sjcl.codec.bytes.toBits
-import sjcl.codec.bytes.fromBits
+import sjcl.toBitArray
+import sjcl.toByteArray
 
 // This implementation uses the Stanford JavaScript Crypto Library
 // (https://github.com/bitwiseshiftleft/sjcl), which is relatively widely used.
@@ -22,7 +24,7 @@ import sjcl.codec.bytes.fromBits
 // But, for now, JS will at least "work".
 
 /** Wrapper around sjcl.bn instances */
-value class BigInteger(val element: sjcl.bn) {
+value class BigInteger(val element: BigNumber) {
     operator fun plus(b: BigInteger) = BigInteger(element.add(b.element))
     operator fun minus(b: BigInteger) = BigInteger(element.sub(b.element))
     operator fun times(b: BigInteger) = BigInteger(element.mul(b.element))
@@ -35,7 +37,7 @@ value class BigInteger(val element: sjcl.bn) {
     fun mod(n: BigInteger) = BigInteger(element.mod(n.element))
     fun powermod(e: BigInteger, n: BigInteger) = BigInteger(element.powermod(e.element, n.element))
     fun inverseMod(n: BigInteger) = BigInteger(element.inverseMod(n.element))
-    fun toByteArray(): ByteArray = fromBits(element.toBits())
+    fun toByteArray(): ByteArray = element.toBits().toByteArray()
 }
 
 private val testGroupContext =
@@ -98,18 +100,20 @@ actual fun productionGroup(acceleration: PowRadixOption) : GroupContext =
 
 actual fun testGroup() = testGroupContext
 
-
 /** Convert an array of bytes, in big-endian format, to a BigInteger */
 internal fun UInt.toBigInteger(): BigInteger {
-  return BigInteger(bn(this.toLong()))
+    val bytes = ByteArray(4)
+    // big-endian
+    bytes[0] = ((this and 0xff_00_00_00U) shr 24).toByte()
+    bytes[1] = ((this and 0xff_00_00U) shr 16).toByte()
+    bytes[2] = ((this and 0xff_00U) shr 8).toByte()
+    bytes[3] = ((this and 0xffU)).toByte()
+    return bytes.toBigInteger()
 }
 
 internal fun ByteArray.toBigInteger() = BigInteger(toBN())
 
-internal fun ByteArray.toBN(): bn {
-    val bitArray = toBits(this)
-    return bn(fromBits(bitArray))
-}
+internal fun ByteArray.toBN(): BigNumber = bn.fromBits(this.toBitArray())
 
 private val SJCL_ZERO = 0U.toBigInteger()
 private val SJCL_ONE = 1U.toBigInteger()
