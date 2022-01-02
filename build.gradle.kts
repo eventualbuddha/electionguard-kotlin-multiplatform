@@ -177,7 +177,12 @@ kotlin {
                     implementation(kotlin("stdlib-js", "1.6.10"))
 
                     // Portable, Kotlin port of Java's BigInteger; slow but works
-                    implementation("io.github.gciatto:kt-math:0.4.0")
+//                    implementation("io.github.gciatto:kt-math:0.4.0")
+
+                    // GMP-WASM is probably the fastest bignum package for JavaScript,
+                    // but because it relies on WASM, it makes everything more difficult
+                    // to use than, say, kt-math.
+                    implementation(npm("gmp-wasm", "0.9.4", generateExternals = true))
                 }
             }
         val jsTest by getting { dependencies { implementation(kotlin("test-js", "1.6.10")) } }

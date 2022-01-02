@@ -3,7 +3,6 @@ package electionguard
 import electionguard.Base64.fromSafeBase64
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import org.gciatto.kt.math.BigInteger
 
 // This implementation uses kt-math (https://github.com/gciatto/kt-math), which is something
 // of a port of Java's BigInteger. It's not terribly fast, but it at least seems to give
