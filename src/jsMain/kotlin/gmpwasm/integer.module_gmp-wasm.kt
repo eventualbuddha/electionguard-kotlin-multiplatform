@@ -1,4 +1,5 @@
 @file:Suppress("INTERFACE_WITH_SUPERCLASS", "OVERRIDING_FINAL_MEMBER", "RETURN_TYPE_MISMATCH_ON_OVERRIDE", "CONFLICTING_OVERLOADS")
+@file:JsModule("gmp-wasm")
 
 package gmpwasm
 
@@ -6,18 +7,7 @@ import org.khronos.webgl.Uint8Array
 
 external interface IntegerFactory : IntegerInterface
 
-typealias IntegerReturn = Any
-
 external interface Integer : IntegerReturn
-
-// type OutputType<T> =
-//  T extends number ? Integer :
-//  T extends Integer ? Integer :
-//  T extends Rational ? Rational :
-//  T extends Float ? Float :
-//  never;
-
-typealias IntegerOutputType<T> = Any
 
 external enum class DivMode {
     CEIL /* = 0 */,

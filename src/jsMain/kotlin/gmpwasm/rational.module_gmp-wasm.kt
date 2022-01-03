@@ -1,16 +1,13 @@
 @file:Suppress("INTERFACE_WITH_SUPERCLASS", "OVERRIDING_FINAL_MEMBER", "RETURN_TYPE_MISMATCH_ON_OVERRIDE", "CONFLICTING_OVERLOADS",
     "UNUSED_TYPEALIAS_PARAMETER"
 )
+@file:JsModule("gmp-wasm")
 
 package gmpwasm
 
 external interface RationalFactory : `T$6`
 
-typealias RationalReturn = Any
-
 external interface Rational : RationalReturn
-
-typealias OutputType<T> = Any
 
 external interface `T$5`<T, T_1, T_2, T_3> {
     var mpq_t: Number

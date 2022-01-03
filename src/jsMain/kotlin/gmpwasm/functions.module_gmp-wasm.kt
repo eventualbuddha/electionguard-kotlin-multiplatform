@@ -1,75 +1,11 @@
 @file:Suppress("INTERFACE_WITH_SUPERCLASS", "OVERRIDING_FINAL_MEMBER", "RETURN_TYPE_MISMATCH_ON_OVERRIDE", "CONFLICTING_OVERLOADS")
+@file:JsModule("gmp-wasm")
 
 package gmpwasm
 
 import org.khronos.webgl.DataView
 import org.khronos.webgl.Uint8Array
 import kotlin.js.Promise
-
-typealias mpz_ptr = Number
-
-typealias mpz_srcptr = Number
-
-typealias mpfr_ptr = Number
-
-typealias mpfr_srcptr = Number
-
-typealias mpq_ptr = Number
-
-typealias mpq_srcptr = Number
-
-typealias mp_bitcnt_t = Number
-
-typealias gmp_randstate_t = Number
-
-typealias __gmp_randstate_struct_ptr = Number
-
-typealias c_unsigned_long_int = Number
-
-typealias c_void_ptr = Number
-
-typealias c_str_ptr = Number
-
-typealias c_int = Number
-
-typealias c_int_ptr = Number
-
-typealias c_long_ptr = Number
-
-typealias c_double = Number
-
-typealias c_signed_long_int = Number
-
-typealias c_signed_long_int_ptr = Number
-
-typealias c_size_t = Number
-
-typealias c_size_t_ptr = Number
-
-typealias mp_limb_t = Number
-
-typealias mp_srcptr = Number
-
-typealias mp_size_t = Number
-
-typealias mpfr_prec_t = Number
-
-typealias mpfr_flags_t = Number
-
-typealias mpfr_ptr_ptr = Number
-
-typealias mp_ptr = Number
-
-typealias mpfr_exp_t_ptr = Number
-
-typealias c_str_ptr_ptr = Number
-
-typealias mpfr_exp_t = Number
-
-typealias mpfr_t = Number
-
-typealias mpfr_prec_t_ptr = Number
-
 external enum class mpfr_rnd_t {
     MPFR_RNDN /* = 0 */,
     MPFR_RNDZ /* = 1 */,
@@ -94,10 +30,6 @@ external enum class mpfr_free_cache_t {
     MPFR_FREE_LOCAL_CACHE /* = 1 */,
     MPFR_FREE_GLOBAL_CACHE /* = 2 */
 }
-
-typealias Awaited<T> = Any
-
-typealias GMPFunctionsType = Awaited<Any>
 
 external interface GMPFunctions : GMPFunctionsType
 
