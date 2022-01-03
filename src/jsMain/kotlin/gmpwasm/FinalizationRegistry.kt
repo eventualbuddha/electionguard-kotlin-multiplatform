@@ -1,6 +1,3 @@
-import kotlin.js.*
-import org.khronos.webgl.*
-
 // Full TypeScript interface
 // https://fossies.org/linux/TypeScript/lib/lib.esnext.weakref.d.ts
 

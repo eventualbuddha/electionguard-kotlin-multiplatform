@@ -12,7 +12,11 @@ import kotlinx.coroutines.test.runTest
  * that it be called *at most once per test method*. It's fine to put multiple asserts or `forAll`
  * calls or whatever else inside the lambda body.
  */
-fun runProperty(f: suspend () -> Unit) { runTest { f() } }
+fun runTest(f: suspend () -> Unit) {
+    // another benefit of having this wrapper code: we don't have to have the OptIn thing
+    // at the top of every unit test file
+    runTest { f() }
+}
 
 /** Verifies that the lambda body throws the specified exception or error. */
 inline fun <reified T : Throwable> assertThrows(message: String = "", f: () -> Unit) {

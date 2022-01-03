@@ -2,20 +2,9 @@
 
 package gmpwasm
 
-import kotlin.js.*
-import org.khronos.webgl.*
-import org.w3c.dom.*
-import org.w3c.dom.events.*
-import org.w3c.dom.parsing.*
-import org.w3c.dom.svg.*
-import org.w3c.dom.url.*
-import org.w3c.fetch.*
-import org.w3c.files.*
-import org.w3c.notifications.*
-import org.w3c.performance.*
-import org.w3c.workers.*
-import org.w3c.xhr.*
-import tsstdlib.ReturnType
+import org.khronos.webgl.DataView
+import org.khronos.webgl.Uint8Array
+import kotlin.js.Promise
 
 typealias mpz_ptr = Number
 
@@ -108,7 +97,7 @@ external enum class mpfr_free_cache_t {
 
 typealias Awaited<T> = Any
 
-typealias GMPFunctionsType = Awaited<ReturnType<Any>>
+typealias GMPFunctionsType = Awaited<Any>
 
 external interface GMPFunctions : GMPFunctionsType
 

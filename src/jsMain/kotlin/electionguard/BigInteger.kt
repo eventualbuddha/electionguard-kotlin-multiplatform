@@ -5,12 +5,12 @@ import FinalizationRegistryI
 import gmpwasm.GMPInterface
 import gmpwasm.getGMPInterface
 import gmpwasm.mpz_ptr
+import kotlinx.coroutines.await
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
 import org.khronos.webgl.set
-import kotlin.js.Promise
 
-// Memory management: this is something we have to do carefully for gmp-wasm, which is
+// **Memory management**: this is something we have to do carefully for gmp-wasm, which is
 // completely unnecessary when dealing with the JVM. At the lowest level, we have
 // calls to mpz_init(), which allocates memory in the gmp-wasm context, returning
 // an mpz_t pointer, and we have mpz_t_free(), which deallocates that same memory.
@@ -19,10 +19,32 @@ import kotlin.js.Promise
 // this for us. An explicit goal is to avoid too much copying back and forth from
 // the wasm environment to the JavaScript environment.
 
+// ** Promises & suspend functions**: JavaScript is really weird about this. At the
+// bottom of everything, we're calling getGMPInterface() which returns Promise<GMPInterface>,
+// which of course happens arbitrarily far into the future, and because JavaScript is
+// a single-threaded desolate wasteland, we can't just block the thread with runBlocking
+// like we might do on the JVM or Kotlin/Native. Instead, we're going to use Kotlin
+// magic to "await" the promise, within a suspending function, which hypothetically
+// means that Kotlin deals with this nonsense for us, so long as the top-level caller
+// is prepared to deal with a suspending function.
+
+private var globalGmpContext: GmpContext? = null
+
 /**
- * Call this first. Returns a promise to our `GmpContext` class, which then has
+ * Call first. Returns the `GmpContext` instance which has everything
+ * needed for the computation. Suspending because the internals require
+ * working around JavaScript promises.
  */
-fun getGmpContext(): Promise<GmpContext> = getGMPInterface().then { GmpContext(it) }
+suspend fun getGmpContext(): GmpContext {
+    val tmp = globalGmpContext
+    if (tmp != null) {
+        return tmp
+    } else {
+        val tmp2 = GmpContext(getGMPInterface().await())
+        globalGmpContext = tmp2
+        return tmp2
+    }
+}
 
 /**
  * This class wraps the `GMPInterface` provided by `gmp-wasm` and gives us a
@@ -55,24 +77,18 @@ class GmpContext(val gmp: GMPInterface) {
         return result
     }
 
-    /** Converts the given constant to a BigInteger. */
-    fun constant(i: Number): BigInteger {
+    /** Converts the given small number to a BigInteger. */
+    fun numberToBigInteger(i: Number): BigInteger {
         val result: mpz_ptr = gmp.mpz_t()
         gmp.mpz_set_ui(result, i)
         return wrap(result)
     }
 
     /** Converts the given big-endian byte array representation to a BigInteger. */
-    fun fromByteArray(byteArray: ByteArray): BigInteger {
-        val ua = Uint8Array(byteArray.size)
-        for (i in 0..byteArray.size - 1) {
-            ua[i] = byteArray[i]
-        }
-        return fromBytes(ua)
-    }
+    fun byteArrayToBigInteger(byteArray: ByteArray) = bytesToBigInteger(byteArray.toUint8Array())
 
     /** Converts the given big-endian byte array representation to a BigInteger. */
-    fun fromBytes(byteArray: Uint8Array): BigInteger {
+    fun bytesToBigInteger(byteArray: Uint8Array): BigInteger {
         val result: mpz_ptr = gmp.mpz_t()
 
         val wasmBuf = gmp.malloc(byteArray.length)
@@ -82,9 +98,9 @@ class GmpContext(val gmp: GMPInterface) {
         return wrap(result)
     }
 
-    val zero = lazy { wrap(0) }
-    val one = lazy { wrap(1) }
-    val two = lazy { wrap(2) }
+    val zero by lazy { wrap(0) }
+    val one by lazy { wrap(1) }
+    val two by lazy { wrap(2) }
 }
 
 /** A minimal BigInteger-style wrapper around GMP-Wasm. */
@@ -130,20 +146,24 @@ class BigInteger(val mpz: mpz_ptr, val context: GmpContext): Comparable<BigInteg
     /** Return the position of the most significant bit. (LSB = 0) */
     fun msbPosition(): Int = (context.gmp.mpz_sizeinbase(this.mpz, 2) as Int) - 1
 
-    /** Returns a big-endian byte array. */
+    /** Returns a big-endian byte array in the "fast" `Uint8Array` type. */
     fun toBytes(): Uint8Array {
-        //     /** Exports integer into an Uint8Array. Sign is ignored. */
-        //    toBuffer(littleEndian = false): Uint8Array {
-        //      const countPtr = gmp.malloc(4);
-        //      const startptr = gmp.mpz_export(0, countPtr, littleEndian ? -1 : 1, 1, 1, 0, this.mpz_t);
-        //      const size = gmp.memView.getUint32(countPtr, true);
-        //      const endptr = startptr + size;
-        //      const buf = gmp.mem.slice(startptr, endptr);
-        //      gmp.free(startptr);
-        //      gmp.free(countPtr);
-        //      return buf;
-        //    },
+        // This won't work correctly with negative numbers, but we don't care.
+        val countPtr = context.gmp.malloc(4)
+        val startPtr = context.gmp.mpz_export(0, countPtr, 1, 1, 1, 0, mpz)
+        val size = context.gmp.memView.getUint32(countPtr as Int, true)
+
+        val result = Uint8Array(size)
+        for (i in 0..size - 1) result[i] = context.gmp.mem[startPtr as Int + i]
+
+        context.gmp.free(startPtr)
+        context.gmp.free(countPtr)
+
+        return result
     }
+
+    /** Returns a big-endian `ByteArray`. Use `toBytes` for increased speed. */
+    fun toByteArray() = toBytes().toByteArray()
 
     override fun compareTo(other: BigInteger): Int {
         // Happily, mpz's idea of comparison is exactly the same as Java / Kotlin,

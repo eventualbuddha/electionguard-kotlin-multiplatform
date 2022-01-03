@@ -184,7 +184,7 @@ kotlin {
                     // GMP-WASM is probably the fastest bignum package for JavaScript,
                     // but because it relies on WASM, it makes everything more difficult
                     // to use than, say, kt-math.
-                    implementation(npm("gmp-wasm", "0.9.4", generateExternals = true))
+                    implementation(npm("gmp-wasm", "0.9.4"))
                 }
             }
         val jsTest by getting { dependencies { implementation(kotlin("test-js", "1.6.10")) } }

@@ -1,8 +1,6 @@
 package electionguard
 
 import electionguard.Base64.fromSafeBase64
-import gmpwasm.GMPInterface
-import gmpwasm.IntegerInterface
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
@@ -20,8 +18,36 @@ import kotlinx.serialization.json.JsonObject
 //
 // But, for now, JS will at least "work".
 
-private val testGroupContext =
-    GroupContext(
+private var testGroupContext: GroupContext? = null
+private val productionGroups: MutableMap<PowRadixOption, GroupContext> = mutableMapOf()
+
+actual suspend fun productionGroup(acceleration: PowRadixOption) : GroupContext =
+    // subtle engineering happening here:
+    // - we don't have to worry about concurrency, because we're in JavaScript, so
+    //   the getOrPut() operation is always safe.
+    // - we only ever want one instance of GroupContext for a given acceleration option
+    // - the getGmpContextSuspending() thing is built around an internal thing that
+    //   returns a JavaScript Promise, so we have to wrap that all up with Kotlin
+    //   coroutines and do the whole suspending function thing. Very annoying.
+    productionGroups.getOrPut(acceleration) {
+        GroupContext(
+            gmpContext = getGmpContext(),
+            pBytes = b64ProductionP.fromSafeBase64(),
+            qBytes = b64ProductionQ.fromSafeBase64(),
+            gBytes = b64ProductionG.fromSafeBase64(),
+            rBytes = b64ProductionR.fromSafeBase64(),
+            strong = true,
+            name = "production group, ${acceleration.description}",
+            powRadixOption = acceleration
+        )
+    }
+
+actual suspend fun testGroup(): GroupContext {
+    // This is only correct because JavaScript is single-threaded, otherwise
+    // we'd have to have some sort of locking discipline.
+
+    val result = testGroupContext ?: GroupContext(
+        gmpContext = getGmpContext(),
         pBytes = b64TestP.fromSafeBase64(),
         qBytes = b64TestQ.fromSafeBase64(),
         gBytes = b64TestG.fromSafeBase64(),
@@ -30,63 +56,11 @@ private val testGroupContext =
         name = "16-bit test group",
         powRadixOption = PowRadixOption.NO_ACCELERATION
     )
+    testGroupContext = result
+    return result
+}
 
-private val productionGroups: HashMap<PowRadixOption, GroupContext> =
-    hashMapOf(
-        PowRadixOption.NO_ACCELERATION to
-                GroupContext(
-                    pBytes = b64ProductionP.fromSafeBase64(),
-                    qBytes = b64ProductionQ.fromSafeBase64(),
-                    gBytes = b64ProductionG.fromSafeBase64(),
-                    rBytes = b64ProductionR.fromSafeBase64(),
-                    strong = true,
-                    name = "production group, no acceleration",
-                    powRadixOption = PowRadixOption.NO_ACCELERATION
-                ),
-        PowRadixOption.LOW_MEMORY_USE to
-                GroupContext(
-                    pBytes = b64ProductionP.fromSafeBase64(),
-                    qBytes = b64ProductionQ.fromSafeBase64(),
-                    gBytes = b64ProductionG.fromSafeBase64(),
-                    rBytes = b64ProductionR.fromSafeBase64(),
-                    strong = true,
-                    name = "production group, low memory use",
-                    powRadixOption = PowRadixOption.LOW_MEMORY_USE
-                ),
-        PowRadixOption.HIGH_MEMORY_USE to
-                GroupContext(
-                    pBytes = b64ProductionP.fromSafeBase64(),
-                    qBytes = b64ProductionQ.fromSafeBase64(),
-                    gBytes = b64ProductionG.fromSafeBase64(),
-                    rBytes = b64ProductionR.fromSafeBase64(),
-                    strong = true,
-                    name = "production group, high memory use",
-                    powRadixOption = PowRadixOption.HIGH_MEMORY_USE
-                ),
-        PowRadixOption.EXTREME_MEMORY_USE to
-                GroupContext(
-                    pBytes = b64ProductionP.fromSafeBase64(),
-                    qBytes = b64ProductionQ.fromSafeBase64(),
-                    gBytes = b64ProductionG.fromSafeBase64(),
-                    rBytes = b64ProductionR.fromSafeBase64(),
-                    strong = true,
-                    name = "production group, extreme memory use",
-                    powRadixOption = PowRadixOption.EXTREME_MEMORY_USE
-                )
-    )
-
-actual fun productionGroup(acceleration: PowRadixOption) : GroupContext =
-    productionGroups[acceleration] ?: throw Error("can't happen")
-
-actual fun testGroup() = testGroupContext
-
-
-/** Convert an array of bytes, in big-endian format, to a BigInteger */
-internal fun UInt.toBigInteger() = BigInteger.of(this.toLong())
-internal fun ByteArray.toBigInteger() = BigInteger(1, this)
-
-
-actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArray, rBytes: ByteArray, strong: Boolean, val name: String, val powRadixOption: PowRadixOption) {
+actual class GroupContext(val gmpContext: GmpContext, pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArray, rBytes: ByteArray, strong: Boolean, val name: String, val powRadixOption: PowRadixOption) {
     val p: BigInteger
     val q: BigInteger
     val g: BigInteger
@@ -106,19 +80,19 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
     val dlogger: DLog
 
     init {
-        p = pBytes.toBigInteger()
-        q = qBytes.toBigInteger()
-        g = gBytes.toBigInteger()
-        r = rBytes.toBigInteger()
-        zeroModP = ElementModP(0U.toBigInteger(), this)
-        oneModP = ElementModP(1U.toBigInteger(), this)
-        twoModP = ElementModP(2U.toBigInteger(), this)
+        p = gmpContext.byteArrayToBigInteger(pBytes)
+        q = gmpContext.byteArrayToBigInteger(qBytes)
+        g = gmpContext.byteArrayToBigInteger(gBytes)
+        r = gmpContext.byteArrayToBigInteger(rBytes)
+        zeroModP = ElementModP(gmpContext.zero,this)
+        oneModP = ElementModP(gmpContext.one, this)
+        twoModP = ElementModP(gmpContext.two, this)
         gModP = ElementModP(g, this).acceleratePow()
         gSquaredModP = gModP * gModP
         qModP = ElementModP(q, this)
-        zeroModQ = ElementModQ(0U.toBigInteger(), this)
-        oneModQ = ElementModQ(1U.toBigInteger(), this)
-        twoModQ = ElementModQ(2U.toBigInteger(), this)
+        zeroModQ = ElementModQ(gmpContext.zero, this)
+        oneModQ = ElementModQ(gmpContext.one, this)
+        twoModQ = ElementModQ(gmpContext.two, this)
         dlogger = DLog(this)
         qMinus1ModQ = zeroModQ - oneModQ
     }
@@ -168,9 +142,8 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
             throw IllegalArgumentException("minimum $minimum may not be negative")
         }
 
-        val tmp = b.toBigInteger().rem(p)
-
-        val mv = BigInteger.of(minimum)
+        val tmp = gmpContext.byteArrayToBigInteger(b) % p
+        val mv = gmpContext.numberToBigInteger(minimum)
         val tmp2 = if (tmp < mv) tmp + mv else tmp
         val result = ElementModP(tmp2, this)
 
@@ -182,9 +155,8 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
             throw IllegalArgumentException("minimum $minimum may not be negative")
         }
 
-        val tmp = b.toBigInteger().rem(q)
-
-        val mv = BigInteger.of(minimum)
+        val tmp = gmpContext.byteArrayToBigInteger(b) % q
+        val mv = gmpContext.numberToBigInteger(minimum)
         val tmp2 = if (tmp < mv) tmp + mv else tmp
         val result = ElementModQ(tmp2, this)
 
@@ -192,13 +164,13 @@ actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArra
     }
 
     actual fun binaryToElementModP(b: ByteArray): ElementModP? {
-        val tmp = b.toBigInteger()
-        return if (tmp >= p || tmp < BigInteger.ZERO) null else ElementModP(tmp, this)
+        val tmp = gmpContext.byteArrayToBigInteger(b)
+        return if (tmp >= p || tmp < gmpContext.zero) null else ElementModP(tmp, this)
     }
 
     actual fun binaryToElementModQ(b: ByteArray): ElementModQ? {
-        val tmp = b.toBigInteger()
-        return if (tmp >= q || tmp < BigInteger.ZERO) null else ElementModQ(tmp, this)
+        val tmp = gmpContext.byteArrayToBigInteger(b)
+        return if (tmp >= q || tmp < gmpContext.zero) null else ElementModQ(tmp, this)
     }
 
     actual fun gPowP(e: ElementModQ) = gModP powP e
@@ -222,9 +194,9 @@ actual class ElementModQ(val element: BigInteger, val groupContext: GroupContext
     override val context: GroupContext
         get() = groupContext
 
-    override fun isZero() = element == BigInteger.ZERO
+    override fun isZero() = element == groupContext.gmpContext.zero
 
-    override fun inBounds() = element >= BigInteger.ZERO && element < groupContext.q
+    override fun inBounds() = element >= groupContext.gmpContext.zero && element < groupContext.q
 
     override fun inBoundsNoZero() = inBounds() && !isZero()
 
@@ -255,7 +227,7 @@ actual class ElementModQ(val element: BigInteger, val groupContext: GroupContext
 
     override fun hashCode() = element.hashCode()
 
-    override fun toString() = element.toString(10)
+    override fun toString() = element.toString()
 }
 
 actual open class ElementModP(val element: BigInteger, val groupContext: GroupContext): Element, Comparable<ElementModP> {
@@ -265,11 +237,11 @@ actual open class ElementModP(val element: BigInteger, val groupContext: GroupCo
     override val context: GroupContext
         get() = groupContext
 
-    override fun isZero() = element == BigInteger.ZERO
+    override fun isZero() = element == groupContext.gmpContext.zero
 
     override fun inBoundsNoZero() = inBounds() && !isZero()
 
-    override fun inBounds() = element >= BigInteger.ZERO && element < groupContext.p
+    override fun inBounds() = element >= groupContext.gmpContext.zero && element < groupContext.p
 
     override fun byteArray(): ByteArray = element.toByteArray()
 
@@ -298,7 +270,7 @@ actual open class ElementModP(val element: BigInteger, val groupContext: GroupCo
 
     override fun hashCode() = element.hashCode()
 
-    override fun toString() = element.toString(10)
+    override fun toString() = element.toString()
 
     actual open fun acceleratePow() : ElementModP =
         AcceleratedElementModP(this)
@@ -356,12 +328,12 @@ actual fun UInt.toElementModQ(ctx: GroupContext) : ElementModQ = when (this) {
     0U -> ctx.ZERO_MOD_Q
     1U -> ctx.ONE_MOD_Q
     2U -> ctx.TWO_MOD_Q
-    else -> ElementModQ(this.toBigInteger(), ctx)
+    else -> ElementModQ(ctx.gmpContext.numberToBigInteger(this.toLong()), ctx)
 }
 
 actual fun UInt.toElementModP(ctx: GroupContext) : ElementModP = when (this) {
     0U -> ctx.ZERO_MOD_P
     1U -> ctx.ONE_MOD_P
     2U -> ctx.TWO_MOD_P
-    else -> ElementModP(this.toBigInteger(), ctx)
+    else -> ElementModP(ctx.gmpContext.numberToBigInteger(this.toLong()), ctx)
 }
