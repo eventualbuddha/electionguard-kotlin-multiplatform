@@ -35,11 +35,13 @@ repositories {
 //}
 
 // Hack to get us a newer version of Gradle than the default of 14.17.0
-rootProject.plugins.withType(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin::class.java) {
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().download = true
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "17.3.0"
-}
-
+rootProject.plugins
+    .withType(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin::class.java) {
+        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>()
+            .download = true
+        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>()
+            .nodeVersion = "17.3.0"
+    }
 
 kotlin {
     jvm {
@@ -80,18 +82,18 @@ kotlin {
         //Error: error:0308010C:digital envelope routines::unsupported
         //    at new Hash (node:internal/crypto/hash:67:19)
         //    at Object.createHash (node:crypto:130:10)
-        //    at BulkUpdateDecorator.hashFactory (/Users/dwallach/IdeaProjects/electionguard-kotlin-multiplatform/build/js/node_modules/webpack/lib/util/createHash.js:155:18)
+        //    at BulkUpdateDecorator.hashFactory
+        // (/Users/dwallach/IdeaProjects/electionguard-kotlin-multiplatform/build/js/node_modules/webpack/lib/util/createHash.js:155:18)
 
         // This seems like a Kotlin bug, not my bug.
 
-//         browser {
-//             testTask {
-//                 useKarma {
-//                     useChromeHeadless()
-//                 }
-//             }
-//         }
-
+        //         browser {
+        //             testTask {
+        //                 useKarma {
+        //                     useChromeHeadless()
+        //                 }
+        //             }
+        //         }
     }
 
     val hostOs = System.getProperty("os.name")
@@ -177,7 +179,7 @@ kotlin {
                     implementation(kotlin("stdlib-js", "1.6.10"))
 
                     // Portable, Kotlin port of Java's BigInteger; slow but works
-//                    implementation("io.github.gciatto:kt-math:0.4.0")
+                    //                    implementation("io.github.gciatto:kt-math:0.4.0")
 
                     // GMP-WASM is probably the fastest bignum package for JavaScript,
                     // but because it relies on WASM, it makes everything more difficult
