@@ -2,6 +2,7 @@
     "UNUSED_TYPEALIAS_PARAMETER"
 )
 @file:JsModule("gmp-wasm")
+@file:JsNonModule
 
 package gmpwasm
 

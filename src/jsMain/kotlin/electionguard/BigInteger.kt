@@ -2,9 +2,7 @@ package electionguard
 
 import FinalizationRegistry
 import FinalizationRegistryI
-import gmpwasm.GMPInterface
-import gmpwasm.getGMPInterface
-import gmpwasm.mpz_ptr
+import gmpwasm.*
 import kotlinx.coroutines.await
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
@@ -40,7 +38,8 @@ suspend fun getGmpContext(): GmpContext {
     if (tmp != null) {
         return tmp
     } else {
-        val tmp2 = GmpContext(getGMPInterface().await())
+        val gmpLib: GMPLib = init().await()
+        val tmp2 = GmpContext(gmpLib.binding.unsafeCast<GMPInterface>())
         globalGmpContext = tmp2
         return tmp2
     }
