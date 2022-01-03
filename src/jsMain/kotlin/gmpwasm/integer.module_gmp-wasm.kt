@@ -17,7 +17,7 @@ import org.w3c.workers.*
 import org.w3c.xhr.*
 import tsstdlib.ReturnType
 
-external interface IntegerFactory : `T$4`
+external interface IntegerFactory : IntegerInterface
 
 typealias IntegerReturn = ReturnType<Any>
 
@@ -119,10 +119,10 @@ external interface `T$3`<T, T_1, T_2, T_3> {
     fun toFloat(): Float
 }
 
-external interface `T$4` {
+external interface IntegerInterface {
     var Integer: (num: dynamic /* String | Number | Integer | Uint8Array | Rational | Float */, radix: Number) -> `T$3`<Any?, Any?, Any?, Any?>
     var isInteger: (param_val: Any) -> Boolean
     var destroy: () -> Unit
 }
 
-external fun getIntegerContext(gmp: GMPFunctions, ctx: Any): `T$4`
+external fun getIntegerContext(gmp: GMPFunctions, ctx: Any): IntegerInterface

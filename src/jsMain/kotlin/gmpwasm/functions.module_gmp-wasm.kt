@@ -112,7 +112,7 @@ typealias GMPFunctionsType = Awaited<ReturnType<Any>>
 
 external interface GMPFunctions : GMPFunctionsType
 
-external interface `T$2` {
+external interface GMPInterface {
     var reset: () -> Promise<Unit>
     var malloc: (size: c_size_t) -> c_void_ptr
     var malloc_cstr: (str: String) -> Number
@@ -614,4 +614,4 @@ external interface `T$2` {
     var mpfr_total_order_p: (x: mpfr_srcptr, y: mpfr_srcptr) -> c_int
 }
 
-external fun getGMPInterface(): Promise<`T$2`>
+external fun getGMPInterface(): Promise<GMPInterface>

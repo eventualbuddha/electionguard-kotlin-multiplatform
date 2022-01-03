@@ -1,6 +1,8 @@
 package electionguard
 
 import electionguard.Base64.fromSafeBase64
+import gmpwasm.GMPInterface
+import gmpwasm.IntegerInterface
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
@@ -82,6 +84,7 @@ actual fun testGroup() = testGroupContext
 /** Convert an array of bytes, in big-endian format, to a BigInteger */
 internal fun UInt.toBigInteger() = BigInteger.of(this.toLong())
 internal fun ByteArray.toBigInteger() = BigInteger(1, this)
+
 
 actual class GroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteArray, rBytes: ByteArray, strong: Boolean, val name: String, val powRadixOption: PowRadixOption) {
     val p: BigInteger
