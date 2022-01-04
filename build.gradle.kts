@@ -90,6 +90,13 @@ kotlin {
                     // thirty seconds rather than the default of two seconds
                     timeout = "30000"
                 }
+
+                testLogging {
+                    showExceptions = true
+                    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                    showCauses = true
+                    showStackTraces = true
+                }
             }
         }
     }
