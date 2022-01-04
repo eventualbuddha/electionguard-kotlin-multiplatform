@@ -1,11 +1,15 @@
 // Full TypeScript interface
 // https://fossies.org/linux/TypeScript/lib/lib.esnext.weakref.d.ts
 
-external interface FinalizationRegistryI {
-    fun register(target: Any, heldValue: Any)
+//external interface FinalizationRegistryI {
+//    fun register(target: Any, heldValue: Any)
+//}
+
+external class FinalizationRegistry<T>(cleanupCallback: (T) -> Unit) {
+    fun register(target: Any, heldValue: T)
 }
 
-external val FinalizationRegistry: (cleanupCallback: (Any) -> Unit) -> FinalizationRegistryI
+//external val FinalizationRegistry: (cleanupCallback: (Any) -> Unit) -> FinalizationRegistryI
 
 // TODO: provide some kind of "check that the JavaScript engine is new enough" function?
 //   Without finalization, on an older JavaScript VM, we *could* just never call free,

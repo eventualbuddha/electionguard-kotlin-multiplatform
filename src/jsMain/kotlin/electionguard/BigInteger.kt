@@ -1,7 +1,6 @@
 package electionguard
 
 import FinalizationRegistry
-import FinalizationRegistryI
 import gmpwasm.*
 import kotlinx.coroutines.await
 import org.khronos.webgl.Uint8Array
@@ -53,10 +52,9 @@ suspend fun getGmpContext(): GmpContext {
  * living in the WASM memory.
  */
 class GmpContext(val gmp: GMPInterface) {
-    private val registry: FinalizationRegistryI = FinalizationRegistry {
-        val tmp = it as mpz_ptr
-        gmp.mpz_clear(tmp) // frees GnuMP internal memory
-        gmp.mpz_t_free(tmp) // frees the mpz_t wrapper
+    private val registry = FinalizationRegistry<mpz_ptr> {
+        gmp.mpz_clear(it) // frees GnuMP internal memory
+        gmp.mpz_t_free(it) // frees the mpz_t wrapper
     }
 
     /** Helper function: allocates an `mpz` and initializes it to zero. */

@@ -67,10 +67,10 @@ suspend fun elGamalPerfTest() {
         }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
-fun main() {
-    println("ElGamal benchmark for node.js (node version = " + js("process").version + ")")
-    GlobalScope.launch {
-        elGamalPerfTest()
-    }
-}
+//@OptIn(DelicateCoroutinesApi::class)
+//fun main() {
+//    println("ElGamal benchmark for node.js (node version = " + js("process").version + ")")
+//    GlobalScope.launch {
+//        elGamalPerfTest()
+//    }
+//}
