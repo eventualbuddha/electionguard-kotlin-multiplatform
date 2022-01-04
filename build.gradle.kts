@@ -56,27 +56,13 @@ kotlin {
             }
     }
 
-    js {
+    js(IR) {
         moduleName = "electionguard"
 
         useCommonJs()
         binaries.executable()
 
-        //        browser {
-        //            commonWebpackConfig { cssSupport.enabled = true }
-        //        }
-        nodejs {
-            version = "17.3.0"
-
-            testTask {
-                useMocha {
-                    // thirty seconds rather than the default of two seconds
-                    timeout = "30000"
-                }
-            }
-        }
-
-        // This should allow things to run in Chrome, but we're getitng weird errors.
+        // This should allow things to run in Chrome, but we're getting weird errors.
         // Error during file loading or preprocessing
 
         //Error: error:0308010C:digital envelope routines::unsupported
@@ -87,13 +73,25 @@ kotlin {
 
         // This seems like a Kotlin bug, not my bug.
 
-        //         browser {
-        //             testTask {
-        //                 useKarma {
-        //                     useChromeHeadless()
-        //                 }
-        //             }
-        //         }
+//        browser {
+//            commonWebpackConfig { cssSupport.enabled = true }
+//            testTask {
+//                useKarma {
+//                    useChromeHeadless()
+//                }
+//            }
+//        }
+
+        nodejs {
+            version = "17.3.0"
+
+            testTask {
+                useMocha {
+                    // thirty seconds rather than the default of two seconds
+                    timeout = "30000"
+                }
+            }
+        }
     }
 
     val hostOs = System.getProperty("os.name")

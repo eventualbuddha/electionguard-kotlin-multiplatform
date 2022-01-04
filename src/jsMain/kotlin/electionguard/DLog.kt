@@ -7,8 +7,7 @@ actual class DLog(val context: GroupContext) {
     // so we don't have to worry about concurrency inside here. That certainly
     // simplifies things.
 
-    private val dLogMapping: MutableMap<ElementModP, Int> =
-        HashMap<ElementModP, Int>().apply { this[context.ONE_MOD_P] = 0 }
+    private val dLogMapping = mutableMapOf(context.ONE_MOD_P to 0)
 
     private var dLogMaxElement = context.ONE_MOD_P
     private var dLogMaxExponent = 0
