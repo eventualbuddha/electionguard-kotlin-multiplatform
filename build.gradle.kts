@@ -177,7 +177,10 @@ kotlin {
                     implementation(kotlin("stdlib-js", "1.6.10"))
 
                     // Portable, Kotlin port of Java's BigInteger; slow but works
-                    implementation("io.github.gciatto:kt-math:0.4.0")
+//                    implementation("io.github.gciatto:kt-math:0.4.0")
+
+                    // Fast, WASM port of GMP for big integers
+                    implementation(npm("gmp-wasm", "0.9.4"))
                 }
             }
         val jsTest by getting { dependencies { implementation(kotlin("test-js", "1.6.10")) } }

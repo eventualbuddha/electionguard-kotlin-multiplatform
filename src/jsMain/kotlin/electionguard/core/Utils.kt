@@ -1,23 +1,34 @@
 package electionguard.core
 
-// complicated browser-vs-node detection logic from here:
-// https://github.com/flexdinesh/browser-or-node/blob/master/src/index.js
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Int8Array
+import org.khronos.webgl.Uint8Array
 
-// const isBrowser =
-//  typeof window !== "undefined" && typeof window.document !== "undefined";
-//
-//const isNode =
-//  typeof process !== "undefined" &&
-//  process.versions != null &&
-//  process.versions.node != null;
+// Useful code borrowed from:
+// https://github.com/rnett/kotlin-js-action/blob/main/kotlin-js-action/src/main/kotlin/com/rnett/action/Utils.kt
 
-/** Distinguish if we're in Node.js (true) or maybe in a browser (false). */
-fun isNodeJs(): Boolean =
-    jsTypeOf(js("process")) != "undefined" &&
-            js("process").versions != null &&
-            js("process").versions.node != null
+/**
+ * Non-copying conversion to a Kotlin [ByteArray].
+ */
+fun ArrayBuffer.asByteArray(byteOffset: Int = 0, length: Int = this.byteLength): ByteArray =
+    Int8Array(this, byteOffset, length).asByteArray()
 
-/** Distinguish if we're in a browser with crypto built-in (true) or maybe somewhere else (false). */
-fun isBrowser(): Boolean =
-    jsTypeOf(js("window")) != "undefined" &&
-            jsTypeOf(js("window.crypto")) != "undefined"
+/**
+ * Non-copying conversion to a Kotlin [ByteArray].
+ */
+fun Int8Array.asByteArray(): ByteArray = this.unsafeCast<ByteArray>()
+
+/**
+ * Non-copying conversion to a Kotlin [ByteArray].
+ */
+fun Uint8Array.asByteArray(): ByteArray = Int8Array(buffer, byteOffset, length).asByteArray()
+
+/**
+ * Non-copying conversion to a [Int8Array].
+ */
+fun ByteArray.asInt8Array(): Int8Array = this.unsafeCast<Int8Array>()
+
+/**
+ * Non-copying conversion to a [Uint8Array].
+ */
+fun ByteArray.asUint8Array(): Uint8Array = this.unsafeCast<Uint8Array>()
