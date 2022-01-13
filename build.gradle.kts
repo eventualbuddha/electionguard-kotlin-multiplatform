@@ -40,7 +40,7 @@ rootProject.plugins
         rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>()
             .download = true
         rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>()
-            .nodeVersion = "17.3.0"
+            .nodeVersion = "16.13.0"
     }
 
 kotlin {
@@ -56,7 +56,7 @@ kotlin {
             }
     }
 
-    js(IR) {
+    js(LEGACY) {
         moduleName = "electionguard"
 
         useCommonJs()
@@ -83,7 +83,7 @@ kotlin {
 //        }
 
         nodejs {
-            version = "17.3.0"
+            version = "16.13.0"
 
             testTask {
                 useMocha {

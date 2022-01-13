@@ -536,4 +536,4 @@ external interface GMPInterface {
     var mpfr_total_order_p: (x: mpfr_srcptr, y: mpfr_srcptr) -> c_int
 }
 
-external fun getGMPInterface(): Promise<GMPInterface>
+external suspend fun getGMPInterface(): GMPInterface

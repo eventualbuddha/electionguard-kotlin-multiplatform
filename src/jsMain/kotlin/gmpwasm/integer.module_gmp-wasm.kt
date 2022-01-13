@@ -6,25 +6,21 @@ package gmpwasm
 
 import org.khronos.webgl.Uint8Array
 
-external interface IntegerFactory : IntegerInterface
-
-external interface Integer : IntegerReturn
-
 external enum class DivMode {
     CEIL /* = 0 */,
     FLOOR /* = 1 */,
     TRUNCATE /* = 2 */
 }
 
-external interface `T$3`<T, T_1, T_2, T_3> {
+external interface Integer {
     var mpz_t: Number
     var type: String
-    fun <T> add(param_val: T): IntegerOutputType<T>
-    fun <T_1> sub(param_val: T_1): IntegerOutputType<T_1>
-    fun <T_2> mul(param_val: T_2): IntegerOutputType<T_2>
+    fun add(param_val: dynamic): Integer
+    fun sub(param_val: dynamic): Integer
+    fun mul(param_val: dynamic): Integer
     fun neg(): Integer
     fun abs(): Integer
-    fun <T_3> div(param_val: T_3, mode: DivMode = definedExternally): IntegerOutputType<T_3>
+    fun div(param_val: dynamic, mode: DivMode = definedExternally): Integer
     fun pow(exp: Rational, mod: Integer = definedExternally): Integer
     fun pow(exp: Rational): Integer
     fun pow(exp: Rational, mod: Number = definedExternally): Integer
@@ -97,10 +93,10 @@ external interface `T$3`<T, T_1, T_2, T_3> {
     fun toFloat(): Float
 }
 
-external interface IntegerInterface {
-    var Integer: (num: dynamic /* String | Number | Integer | Uint8Array | Rational | Float */, radix: Number) -> `T$3`<Any?, Any?, Any?, Any?>
+external interface IntegerFactory {
+    var Integer: (num: dynamic /* String | Number | Integer | Uint8Array | Rational | Float */, radix: Number) -> Integer
     var isInteger: (param_val: Any) -> Boolean
     var destroy: () -> Unit
 }
 
-external fun getIntegerContext(gmp: GMPFunctions, ctx: Any): IntegerInterface
+external fun getIntegerContext(gmp: GMPFunctions, ctx: Any): IntegerFactory
