@@ -48,14 +48,21 @@ class ProductionGroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteA
     val big2: BigInteger
 
     init {
+        console.log("ProductionGroupContext: initializing for $name")
         p = gmpContext.byteArrayToBigInteger(pBytes)
+        console.log("ProductionGroupContext: first call did something useful")
+
         q = gmpContext.byteArrayToBigInteger(qBytes)
         g = gmpContext.byteArrayToBigInteger(gBytes)
         r = gmpContext.byteArrayToBigInteger(rBytes)
         big0 = gmpContext.numberToBigInteger(0)
+        console.log("ProductionGroupContext: numberToBigInteger worked")
+
         big1 = gmpContext.numberToBigInteger(1)
         big2 = gmpContext.numberToBigInteger(2)
         zeroModP = ProductionElementModP(big0, this)
+        console.log("ProductionGroupContext: made first ProductionElement")
+
         oneModP = ProductionElementModP(big1, this)
         twoModP = ProductionElementModP(big2, this)
         gModP = ProductionElementModP(g, this).acceleratePow() as ProductionElementModP
@@ -66,6 +73,7 @@ class ProductionGroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteA
         twoModQ = ProductionElementModQ(big2, this)
         dlogger = DLog(this)
         qMinus1ModQ = (zeroModQ - oneModQ) as ProductionElementModQ
+        console.log("ProductionGroupContext: complete for $name")
     }
 
     override fun toString() : String = name

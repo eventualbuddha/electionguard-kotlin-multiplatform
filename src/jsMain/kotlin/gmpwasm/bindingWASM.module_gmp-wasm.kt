@@ -2,7 +2,13 @@
 @file:JsModule("gmp-wasm")
 @file:JsNonModule
 
+package gmpwasm
+
 import kotlin.js.Promise
 
-// async function returning a JS object with a heap and a list of "exports" generated from the WASM guts
-external var getBinding: (reset: Boolean) -> Promise<dynamic>
+external interface GMPLib {
+    var binding: GMPInterface
+    var reset: () -> Promise<Unit>
+}
+
+external fun init(): Promise<GMPLib>

@@ -2,12 +2,15 @@ package electionguard.core
 
 import FinalizationRegistry
 import gmpwasm.GMPInterface
-import gmpwasm.getGMPInterface
+import gmpwasm.GMPLib
 import gmpwasm.mpz_ptr
+import kotlinext.js.Object
+import kotlinext.js.asJsObject
 import kotlinx.coroutines.await
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
 import org.khronos.webgl.set
+import kotlin.js.Promise
 
 // **Memory management**: this is something we have to do carefully for gmp-wasm, which is
 // completely unnecessary when dealing with the JVM. At the lowest level, we have
@@ -41,7 +44,13 @@ import org.khronos.webgl.set
  * working around JavaScript promises.
  */
 suspend fun getGmpContext(): GmpContext {
-    val gmp = getGMPInterface().await()
+    console.info("starting getGmpContext()")
+    val gmpP = js("eval('require')('gmp-wasm')") // is this really necessary?
+    console.info("getGmpContext: got package")
+    val gmpI = gmpP.init().unsafeCast<Promise<GMPLib>>().await()
+    console.info("getGmpContext: got lib: keys(${Object.keys(gmpI.asJsObject())})")
+    val gmp = gmpI.binding
+    console.info("getGmpContext: got binding")
     return GmpContext(gmp)
 }
 

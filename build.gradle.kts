@@ -43,6 +43,7 @@ kotlin {
             }
     }
 
+    // the "IR" backend seem flakier, so we're sticking with "LEGACY" for now
     js(LEGACY) {
         moduleName = "electionguard"
 
@@ -175,6 +176,9 @@ kotlin {
             getting {
                 dependencies {
                     implementation(kotlin("stdlib-js", "1.6.10"))
+
+                    // useful utilities
+                    implementation("org.jetbrains.kotlin-wrappers:kotlin-extensions:1.0.1-pre.290-kotlin-1.6.10")
 
                     // Portable, Kotlin port of Java's BigInteger; slow but works
 //                    implementation("io.github.gciatto:kt-math:0.4.0")

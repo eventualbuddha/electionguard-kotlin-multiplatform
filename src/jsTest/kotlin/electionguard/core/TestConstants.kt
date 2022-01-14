@@ -10,7 +10,9 @@ class TestConstants {
     fun saneConstantsBig() {
         runTest {
             val gmp = getGmpContext()
+            console.log("saneConstants: successfully got context")
             val p = gmp.byteArrayToBigInteger(b64ProductionP.fromSafeBase64())
+            console.log("saneConstants: successfully used context")
             val q = gmp.byteArrayToBigInteger(b64ProductionQ.fromSafeBase64())
             val qInv = gmp.byteArrayToBigInteger(b64ProductionP256MinusQ.fromSafeBase64())
             val g = gmp.byteArrayToBigInteger(b64ProductionG.fromSafeBase64())
@@ -32,7 +34,9 @@ class TestConstants {
     fun saneConstantsSmall() {
         runTest {
             val gmp = getGmpContext()
+            console.log("saneConstantsSmall: successfully got context")
             val p = gmp.byteArrayToBigInteger(b64TestP.fromSafeBase64())
+            console.log("saneConstantsSmall: successfully used context")
             val q = gmp.byteArrayToBigInteger(b64TestQ.fromSafeBase64())
             val g = gmp.byteArrayToBigInteger(b64TestG.fromSafeBase64())
             val r = gmp.byteArrayToBigInteger(b64TestR.fromSafeBase64())
