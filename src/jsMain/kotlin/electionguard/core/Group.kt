@@ -50,13 +50,15 @@ class ProductionGroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteA
     init {
         console.log("ProductionGroupContext: initializing for $name")
         p = gmpContext.byteArrayToBigInteger(pBytes)
-        console.log("ProductionGroupContext: first call did something useful")
-
+        console.log("ProductionGroupContext: p")
         q = gmpContext.byteArrayToBigInteger(qBytes)
+        console.log("ProductionGroupContext: q")
         g = gmpContext.byteArrayToBigInteger(gBytes)
+        console.log("ProductionGroupContext: g")
         r = gmpContext.byteArrayToBigInteger(rBytes)
+        console.log("ProductionGroupContext: r")
         big0 = gmpContext.numberToBigInteger(0)
-        console.log("ProductionGroupContext: numberToBigInteger worked")
+        console.log("ProductionGroupContext: big0")
 
         big1 = gmpContext.numberToBigInteger(1)
         big2 = gmpContext.numberToBigInteger(2)

@@ -84,11 +84,15 @@ class GmpContext(val gmp: GMPInterface) {
         return result
     }
 
-    /** Converts the given small number to a BigInteger. */
+    /** Converts the given small, positive number to a BigInteger. */
     fun numberToBigInteger(i: Number): BigInteger {
-        val result: mpz_ptr = gmp.mpz_t()
-        gmp.mpz_set_ui(result, i)
-        return wrap(result)
+        val iInt = i.toInt()
+        if (iInt < 0) {
+            throw IllegalArgumentException("only non-negative numbers are supported")
+        }
+
+        val bytes = ByteArray(4) { ((iInt shr (8 * (3 - it))) and 0xff).toByte() }
+        return byteArrayToBigInteger(bytes)
     }
 
     /** Converts the given big-endian byte array representation to a BigInteger. */
