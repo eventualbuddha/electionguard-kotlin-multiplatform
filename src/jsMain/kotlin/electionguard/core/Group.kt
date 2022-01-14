@@ -49,6 +49,13 @@ class ProductionGroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteA
 
     init {
         console.log("ProductionGroupContext: initializing for $name")
+        big0 = gmpContext.numberToBigInteger(0)
+        console.log("ProductionGroupContext: big0")
+        big1 = gmpContext.numberToBigInteger(1)
+        console.log("ProductionGroupContext: big1")
+        big2 = gmpContext.numberToBigInteger(2)
+        console.log("ProductionGroupContext: big2")
+
         p = gmpContext.byteArrayToBigInteger(pBytes)
         console.log("ProductionGroupContext: p")
         q = gmpContext.byteArrayToBigInteger(qBytes)
@@ -57,11 +64,7 @@ class ProductionGroupContext(pBytes: ByteArray, qBytes: ByteArray, gBytes: ByteA
         console.log("ProductionGroupContext: g")
         r = gmpContext.byteArrayToBigInteger(rBytes)
         console.log("ProductionGroupContext: r")
-        big0 = gmpContext.numberToBigInteger(0)
-        console.log("ProductionGroupContext: big0")
 
-        big1 = gmpContext.numberToBigInteger(1)
-        big2 = gmpContext.numberToBigInteger(2)
         zeroModP = ProductionElementModP(big0, this)
         console.log("ProductionGroupContext: made first ProductionElement")
 
