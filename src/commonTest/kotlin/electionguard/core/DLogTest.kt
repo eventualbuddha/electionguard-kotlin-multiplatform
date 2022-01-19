@@ -10,6 +10,22 @@ class DLogTest {
     private val small = 2_000
 
     @Test
+    fun evenMoreBasic() {
+        runTest {
+            val context = productionGroup(PowRadixOption.NO_ACCELERATION)
+
+            val result0 = context.dLog(context.gPowP(0.toElementModQ(context)))
+            assertEquals(0, result0)
+
+            val result1 = context.dLog(context.gPowP(1.toElementModQ(context)))
+            assertEquals(1, result1)
+
+            val result2 = context.dLog(context.gPowP(2.toElementModQ(context)))
+            assertEquals(2, result2)
+        }
+    }
+
+    @Test
     fun basics() {
         runTest {
             checkAll(propTestFastConfig, Arb.int(min=0, max=small)) {
