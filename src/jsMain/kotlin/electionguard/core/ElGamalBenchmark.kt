@@ -20,11 +20,15 @@ suspend fun elGamalPerfTest() {
         .forEach { powRadixOption ->
             println("Initializing benchmark for $powRadixOption")
             val context = productionGroup(powRadixOption)
+            println("Got production group")
 
             val keypair = elGamalKeyPairFromRandom(context)
+            println("Got keypair")
             val nonces = Array(N) { context.randomElementModQ() }
+            println("Got random nonces")
             val prng = Random.Default // not secure, but we don't care
             val messages = Array(N) { prng.nextInt(1000) }
+            println("Got plaintext message")
 
             // force the PowRadix tables to be realized before we start the clock
             messages[0].encrypt(keypair, nonces[0]).decrypt(keypair)
