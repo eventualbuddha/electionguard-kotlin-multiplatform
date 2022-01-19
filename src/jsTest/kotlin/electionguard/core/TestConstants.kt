@@ -1,11 +1,9 @@
 package electionguard.core
 
 import electionguard.core.Base64.fromSafeBase64
-import electionguard.core.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import org.gciatto.kt.math.BigInteger
 
 class TestConstants {
     @Test
@@ -16,7 +14,7 @@ class TestConstants {
         val g = b64ProductionG.fromSafeBase64().toBigInteger()
         val r = b64ProductionR.fromSafeBase64().toBigInteger()
 
-        val big1 = BigInteger.of(1)
+        val big1 = BigInteger.ONE
 
         assertTrue(p > big1)
         assertTrue(q > big1)
@@ -34,9 +32,9 @@ class TestConstants {
         val g = b64TestG.fromSafeBase64().toBigInteger()
         val r = b64TestR.fromSafeBase64().toBigInteger()
 
-        assertEquals(BigInteger.of(intTestP), p)
-        assertEquals(BigInteger.of(intTestQ), q)
-        assertEquals(BigInteger.of(intTestG), g)
-        assertEquals(BigInteger.of(intTestR), r)
+        assertEquals(intTestP.toUInt().toBigInteger(), p)
+        assertEquals(intTestQ.toUInt().toBigInteger(), q)
+        assertEquals(intTestG.toUInt().toBigInteger(), g)
+        assertEquals(intTestR.toUInt().toBigInteger(), r)
     }
 }
