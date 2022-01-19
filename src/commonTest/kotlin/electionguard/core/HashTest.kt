@@ -26,7 +26,8 @@ class HashTest {
             checkAll(propTestFastConfig, elementsModQ(context), elementsModQ(context)) { q1, q2 ->
                 val h1 = context.hashElements(q1)
                 val h2 = context.hashElements(q2)
-                if (q1 == q2) assertEquals(h1, h2) else assertNotEquals(h1, h2)
+                if (q1 == q2) assertEquals(h1, h2, "element equality implies hash equality")
+                if (h1 != h2) assertNotEquals(q1, q2, "hash inequality implies element inequality")
             }
         }
     }

@@ -274,7 +274,7 @@ tasks.register("validateYarnLock") {
             throw AssertionError(
                 "Generated yarn.lock differs from the one in the repository. " +
                     "It can happen because someone has updated a dependency and haven't run " +
-                        "`./gradlew :backupYarnLock --refresh-dependencies` " + "afterwards."
+                    "`./gradlew :backupYarnLock --refresh-dependencies` " + "afterwards."
             )
         }
     }
