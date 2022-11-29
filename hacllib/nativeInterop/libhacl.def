@@ -13,8 +13,9 @@ headers = \
 staticLibraries = libhacl.a
 libraryPaths = build
 
-linkerOpts.osx = --library hacl --library-path hacllib/build
+# old-school flags on a Mac, new-school flags on Linux
+linkerOpts.osx = -lhacl -Lhacllib/build
 linkerOpts.linux = --library hacl --library-path hacllib/build
 
-compilerOpts.osx = -Ilibhacl/include
-compilerOpts.linux = -Ilibhacl/include -O2
+compilerOpts.osx = -Ilibhacl/include -O3
+compilerOpts.linux = -Ilibhacl/include -O3

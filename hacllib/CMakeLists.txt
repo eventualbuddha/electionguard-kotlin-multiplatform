@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.25)
 
 # On a Mac, we'll normally get LLVM / AppleClang 13. The line below forces gcc-11
 # (via `brew install gcc`), which seems to yield code that's 15% slower than Clang.
@@ -7,10 +7,6 @@ cmake_minimum_required(VERSION 3.21)
 
 project(hacl)
 
-# This doesn't work at all on M1 Macs
-# include("cmake/OptimizeForArchitecture.cmake")
-# OptimizeForArchitecture()
-
 # This line requests that we compile universal binaries.
 # More details:
 #   https://stackoverflow.com/a/65811061
@@ -18,24 +14,34 @@ project(hacl)
 # CMAKE_OSX_ARCHITECTURES=arm64;x86_64
 set (CMAKE_OSX_ARCHITECTURES arm64 x86_64)
 
-ADD_LIBRARY(hacl STATIC
-    libhacl/src/Hacl_Bignum.c
-    libhacl/src/Hacl_Bignum256.c
-    libhacl/src/Hacl_Bignum32.c
-    libhacl/src/Hacl_Bignum4096.c
-    libhacl/src/Hacl_Bignum64.c
-    libhacl/src/Hacl_HMAC.c
-    libhacl/src/Hacl_HMAC_DRBG.c
-    libhacl/src/Hacl_Hash_Base.c
-    libhacl/src/Hacl_Hash_Blake2.c
-    libhacl/src/Hacl_Hash_MD5.c
-    libhacl/src/Hacl_Hash_SHA1.c
-    libhacl/src/Hacl_Hash_SHA2.c
-    libhacl/src/Hacl_GenericField64.c
-    libhacl/src/Hacl_Streaming_SHA2.c
-    libhacl/src/Lib_Memzero0.c
-    libhacl/src/Lib_RandomBuffer_System.c
-)
+# Doesn't work on cmake 3.21; seems to require a newer version
+# (Had to run `brew install homebrew/cask/cmake` to make it work on my Mac.)
+
+include(FetchContent)
+FetchContent_Declare(hacl
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        URL https://github.com/cryspen/hacl-packages/archive/refs/tags/c-v0.6.0.zip
+    )
+FetchContent_MakeAvailable(hacl)
+
+# ADD_LIBRARY(hacl STATIC
+#     libhacl/src/Hacl_Bignum.c
+#     libhacl/src/Hacl_Bignum256.c
+#     libhacl/src/Hacl_Bignum32.c
+#     libhacl/src/Hacl_Bignum4096.c
+#     libhacl/src/Hacl_Bignum64.c
+#     libhacl/src/Hacl_HMAC.c
+#     libhacl/src/Hacl_HMAC_DRBG.c
+#     libhacl/src/Hacl_Hash_Base.c
+#     libhacl/src/Hacl_Hash_Blake2.c
+#     libhacl/src/Hacl_Hash_MD5.c
+#     libhacl/src/Hacl_Hash_SHA1.c
+#     libhacl/src/Hacl_Hash_SHA2.c
+#     libhacl/src/Hacl_GenericField64.c
+#     libhacl/src/Hacl_Streaming_SHA2.c
+#     libhacl/src/Lib_Memzero0.c
+#     libhacl/src/Lib_RandomBuffer_System.c
+# )
 
 # Hash_Base makes calls to Blake2, but the files below use all the AVX instructions
 # and, for whatever reason, the relevant compiler flags aren't (yet) set, even using
@@ -47,12 +53,11 @@ ADD_LIBRARY(hacl STATIC
 #    libhacl/src/Hacl_HMAC_Blake2b_256.c
 #    libhacl/src/Hacl_HMAC_Blake2s_128.c
 
-target_include_directories(hacl PUBLIC
-  $/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libhacl/include>
-  $<INSTALL_INTERFACE:libhacl/include>  # <prefix>/libhacl/include
-)
-
+# target_include_directories(hacl PUBLIC
+#   $/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include
+#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libhacl/include>
+#   $<INSTALL_INTERFACE:libhacl/include>  # <prefix>/libhacl/include
+# )
 
 option(CAN_USE_VECTOR_INTRINSICS "Use vector intrinsics for math functions if available"     ON)
 option(USE_32BIT_MATH            "Use the 32 bit optimized math impl"                        OFF)
